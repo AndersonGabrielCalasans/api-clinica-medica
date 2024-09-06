@@ -37,8 +37,9 @@ public class MedicoResource {
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listarMedicos() {
-        List<MedicoListagemFiltradaDTO> medicos = medicoService.listarMedicosFiltrado();
+    public Response listarMedicos(@QueryParam("page") @DefaultValue("0") Integer page,
+                                  @QueryParam("pageSize") @DefaultValue("10") Integer pageSize) {
+        List<MedicoListagemFiltradaDTO> medicos = medicoService.listarMedicosFiltrado(page, pageSize);
         return Response.status(Response.Status.OK)
                 .entity(medicos)
                 .build();

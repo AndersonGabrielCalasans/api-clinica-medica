@@ -5,14 +5,14 @@ import br.com.gabrielcalasans.persistence.dto.MedicoDTO;
 import br.com.gabrielcalasans.persistence.dto.MedicoListagemFiltradaDTO;
 import br.com.gabrielcalasans.persistence.models.Medico;
 import br.com.gabrielcalasans.persistence.repository.MedicoRepository;
+import io.quarkus.panache.common.Page;
+import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class MedicoService {
@@ -42,11 +42,11 @@ public class MedicoService {
                 .toList();
     }
     
-    public List<MedicoListagemFiltradaDTO> listarMedicosFiltrado() {
-        return medicoRepository.findAll()
+    public List<MedicoListagemFiltradaDTO> listarMedicosFiltrado(Integer page, Integer pageSize) {
+        return medicoRepository.findAll(Sort.by("nome"))
+                .page(Page.of(page, pageSize))
                 .stream()
                 .map(MedicoListagemFiltradaDTO::new)
-                .sorted(Comparator.comparing(MedicoListagemFiltradaDTO::nome))
                 .toList();
     }
     
