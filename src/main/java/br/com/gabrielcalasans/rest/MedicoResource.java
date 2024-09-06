@@ -1,6 +1,7 @@
 package br.com.gabrielcalasans.rest;
 
 import br.com.gabrielcalasans.persistence.dto.MedicoDTO;
+import br.com.gabrielcalasans.persistence.dto.MedicoListagemFiltradaDTO;
 import br.com.gabrielcalasans.persistence.models.Medico;
 import br.com.gabrielcalasans.service.MedicoService;
 import jakarta.enterprise.context.RequestScoped;
@@ -37,7 +38,7 @@ public class MedicoResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response listarMedicos() {
-        List<Medico> medicos = medicoService.listarMedicos();
+        List<MedicoListagemFiltradaDTO> medicos = medicoService.listarMedicosFiltrado();
         return Response.status(Response.Status.OK)
                 .entity(medicos)
                 .build();
