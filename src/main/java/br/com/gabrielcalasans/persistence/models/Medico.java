@@ -1,17 +1,15 @@
 package br.com.gabrielcalasans.persistence.models;
 
-import br.com.gabrielcalasans.persistence.dto.MedicoDTO;
+import br.com.gabrielcalasans.persistence.dto.DadosMedicoDTO;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "medicos", schema = "api_clinica_med")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Setter
 @EqualsAndHashCode(of = "id")
 public class Medico {
     
@@ -26,13 +24,16 @@ public class Medico {
     private Especialidade especialidade;
     @Embedded
     private Endereco endereco;
+    private Boolean ativo;
     
-    public Medico(MedicoDTO medicoDTO) {
-        this.nome = medicoDTO.nome();
-        this.email = medicoDTO.email();
-        this.telefone = medicoDTO.telefone();
-        this.crm = medicoDTO.crm();
-        this.especialidade = medicoDTO.especialidade();
-        this.endereco = new Endereco(medicoDTO.endereco());
+    public Medico(DadosMedicoDTO dadosMedicoDTO) {
+        this.nome = dadosMedicoDTO.nome();
+        this.email = dadosMedicoDTO.email();
+        this.telefone = dadosMedicoDTO.telefone();
+        this.crm = dadosMedicoDTO.crm();
+        this.especialidade = dadosMedicoDTO.especialidade();
+        this.endereco = new Endereco(dadosMedicoDTO.endereco());
+        this.ativo = true;
     }
+    
 }
