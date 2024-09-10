@@ -1,6 +1,6 @@
 package br.com.gabrielcalasans.persistence.models;
 
-import br.com.gabrielcalasans.persistence.dto.DadosEnderecoDTO;
+import br.com.gabrielcalasans.persistence.dto.endereco.DadosEnderecoDTO;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

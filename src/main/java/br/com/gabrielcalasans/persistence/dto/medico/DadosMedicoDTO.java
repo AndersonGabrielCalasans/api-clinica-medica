@@ -1,5 +1,6 @@
-package br.com.gabrielcalasans.persistence.dto;
+package br.com.gabrielcalasans.persistence.dto.medico;
 
+import br.com.gabrielcalasans.persistence.dto.endereco.DadosEnderecoDTO;
 import br.com.gabrielcalasans.persistence.models.Especialidade;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;

@@ -1,4 +1,4 @@
-package br.com.gabrielcalasans.persistence.dto;
+package br.com.gabrielcalasans.persistence.dto.medico;
 
 import br.com.gabrielcalasans.persistence.models.Especialidade;
 import br.com.gabrielcalasans.persistence.models.Medico;

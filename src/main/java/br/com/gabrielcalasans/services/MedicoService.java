@@ -1,12 +1,14 @@
-package br.com.gabrielcalasans.service;
+package br.com.gabrielcalasans.services;
 
 import br.com.gabrielcalasans.exception.CRMCadastradoException;
 import br.com.gabrielcalasans.exception.MedicoIdInvalidoException;
-import br.com.gabrielcalasans.persistence.dto.DadosAtualizarMedicoDTO;
-import br.com.gabrielcalasans.persistence.dto.DadosListarMedicoFiltradaDTO;
-import br.com.gabrielcalasans.persistence.dto.DadosMedicoDTO;
+import br.com.gabrielcalasans.exception.MedicoNotFoundException;
+import br.com.gabrielcalasans.persistence.dto.medico.DadosAtualizarMedicoDTO;
+import br.com.gabrielcalasans.persistence.dto.medico.DadosDetalhamentoMedicoDTO;
+import br.com.gabrielcalasans.persistence.dto.medico.DadosListarMedicoFiltradaDTO;
+import br.com.gabrielcalasans.persistence.dto.medico.DadosMedicoDTO;
 import br.com.gabrielcalasans.persistence.models.Medico;
-import br.com.gabrielcalasans.persistence.repository.MedicoRepository;
+import br.com.gabrielcalasans.persistence.repo.MedicoRepository;
 import io.quarkus.panache.common.Page;
 import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -20,37 +22,37 @@ import java.util.Optional;
 public class MedicoService {
     
     @Inject
-    private final MedicoRepository medicoRepository;
+    private final MedicoRepository repository;
     
-    public MedicoService(MedicoRepository medicoRepository) {
-        this.medicoRepository = medicoRepository;
+    public MedicoService(MedicoRepository repository) {
+        this.repository = repository;
     }
     
     @Transactional
-    public Medico cadastrarMedico(DadosMedicoDTO dadosMedicoDTO) {
-        Optional<Medico> medicoOptional = medicoRepository.buscarPorCRM(dadosMedicoDTO.crm());
+    public DadosListarMedicoFiltradaDTO cadastrarMedico(DadosMedicoDTO dadosMedicoDTO) {
+        Optional<Medico> medicoOptional = repository.buscarPorCRM(dadosMedicoDTO.crm());
         
         if (medicoOptional.isPresent() && medicoOptional.get().getAtivo()) {
             throw new CRMCadastradoException("CRM já cadastrado!");
         } else if (medicoOptional.isPresent() && !medicoOptional.get().getAtivo()) {
-            var medico = medicoRepository.findById(medicoOptional.get().getId());
+            var medico = repository.findById(medicoOptional.get().getId());
             medico.setAtivo(true);
-            return medico;
+            return new DadosListarMedicoFiltradaDTO(medico);
         } else {
             var medico = new Medico(dadosMedicoDTO);
-            medicoRepository.persist(medico);
-            return medico;
+            repository.persist(medico);
+            return new DadosListarMedicoFiltradaDTO(medico);
         }
     }
     
     public List<Medico> listarMedicos() {
-        return medicoRepository.findAll()
+        return repository.findAll()
                 .stream()
                 .toList();
     }
     
     public List<DadosListarMedicoFiltradaDTO> listarMedicosFiltrado(Integer page, Integer pageSize) {
-        return medicoRepository.findAllByAtivo(Sort.by("nome"))
+        return repository.findAllByAtivo(Sort.by("nome"))
                 .page(Page.of(page, pageSize))
                 .stream()
                 .map(DadosListarMedicoFiltradaDTO::new)
@@ -60,7 +62,7 @@ public class MedicoService {
     @Transactional
     public DadosListarMedicoFiltradaDTO atualizarMedico(DadosAtualizarMedicoDTO dados) {
         
-        Medico medico = medicoRepository.findById(dados.id());
+        Medico medico = repository.findById(dados.id());
         atualizarDados(medico, dados);
         return new DadosListarMedicoFiltradaDTO(medico);
     }
@@ -81,14 +83,16 @@ public class MedicoService {
     
     @Transactional
     public void deletarMedico(Long id) {
-        Medico medico = medicoRepository.findById(id);
+        Medico medico = repository.findById(id);
         if (!medico.getAtivo()) {
             throw new MedicoIdInvalidoException("Id não cadastrado ou medico já inativo");
         }
-        excluirMedico(medico);
-    }
-    
-    private void excluirMedico(Medico medico) {
         medico.setAtivo(false);
+    }
+
+    public DadosDetalhamentoMedicoDTO detalhar(Long id) {
+        var medico = repository.findByIdOptional(id).orElseThrow(() -> new MedicoNotFoundException("Id informado não encontrado"));
+        
+        return  new DadosDetalhamentoMedicoDTO(medico);
     }
 }

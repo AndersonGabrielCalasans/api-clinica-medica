@@ -1,6 +1,6 @@
 package br.com.gabrielcalasans.persistence.models;
 
-import br.com.gabrielcalasans.persistence.dto.DadosMedicoDTO;
+import br.com.gabrielcalasans.persistence.dto.medico.DadosMedicoDTO;
 import jakarta.persistence.*;
 import lombok.*;
 

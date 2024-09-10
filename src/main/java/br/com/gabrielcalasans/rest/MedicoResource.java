@@ -1,68 +1,76 @@
 package br.com.gabrielcalasans.rest;
 
-import br.com.gabrielcalasans.persistence.dto.DadosAtualizarMedicoDTO;
-import br.com.gabrielcalasans.persistence.dto.DadosMedicoDTO;
-import br.com.gabrielcalasans.persistence.dto.DadosListarMedicoFiltradaDTO;
-import br.com.gabrielcalasans.persistence.models.Medico;
-import br.com.gabrielcalasans.service.MedicoService;
+import br.com.gabrielcalasans.persistence.dto.medico.DadosAtualizarMedicoDTO;
+import br.com.gabrielcalasans.persistence.dto.medico.DadosMedicoDTO;
+import br.com.gabrielcalasans.persistence.dto.medico.DadosListarMedicoFiltradaDTO;
+import br.com.gabrielcalasans.services.MedicoService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @Path("/api/medicos")
 @RequestScoped
+@Produces(MediaType.APPLICATION_JSON + "; charset=UTF-8")
+@Consumes(MediaType.APPLICATION_JSON + "; charset=UTF-8")
 public class MedicoResource {
     
     @Inject
-    private final MedicoService medicoService;
+    private final MedicoService service;
     
-    public MedicoResource(MedicoService medicoService) {
-        this.medicoService = medicoService;
+    public MedicoResource(MedicoService service) {
+        this.service = service;
     }
     
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response cadastrarMedido(@Valid DadosMedicoDTO dadosMedicoDTO) {
-        Medico medico = medicoService.cadastrarMedico(dadosMedicoDTO);
-        return Response
-                .status(Response.Status.CREATED)
-                .entity(medico)
-                .build();
+    public Response cadastrar(@Valid DadosMedicoDTO dadosMedicoDTO) {
+        var medico = service.cadastrarMedico(dadosMedicoDTO);
+        URI uri = getUri(medico);
+     
+        return Response.created(uri).entity(medico).build();
+    }
+    
+    private static URI getUri(@NotNull DadosListarMedicoFiltradaDTO dados) {
+        URI uri = UriBuilder.fromResource(MedicoResource.class).path(String.valueOf(dados.id())).build();
+     
+        return uri;
     }
     
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response listarMedicos(@QueryParam("page") @DefaultValue("0") Integer page,
-                                  @QueryParam("pageSize") @DefaultValue("10") Integer pageSize) {
-        List<DadosListarMedicoFiltradaDTO> medicos = medicoService.listarMedicosFiltrado(page, pageSize);
-        return Response.status(Response.Status.OK)
-                .entity(medicos)
-                .build();
+    public Response listar(@QueryParam("page") @DefaultValue("0") Integer page,
+                           @QueryParam("pageSize") @DefaultValue("10") Integer pageSize) {
+        List<DadosListarMedicoFiltradaDTO> medicos = service.listarMedicosFiltrado(page, pageSize);
+     
+        return Response.ok().entity(medicos).build();
     }
     
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response atualizarMedico(@Valid DadosAtualizarMedicoDTO medicoDTO) {
-        var medico = medicoService.atualizarMedico(medicoDTO);
-        return Response
-                .status(Response.Status.OK)
-                .entity(medico)
-                .build();
+    public Response atualizar(@Valid DadosAtualizarMedicoDTO medicoDTO) {
+        DadosListarMedicoFiltradaDTO medico = service.atualizarMedico(medicoDTO);
+     
+        return Response.ok().entity(medico).build();
     }
     
-    @DELETE
     @Path("/{id}")
-    public Response deletarMedico(@PathParam("id") Long id) {
-        medicoService.deletarMedico(id);
-        return Response
-                .status(Response.Status.OK)
-                .build();
+    @DELETE
+    public Response deletar(@PathParam("id") Long id) {
+        service.deletarMedico(id);
+     
+        return Response.noContent().build();
+    }
+    
+    @GET
+    @Path("/{id}")
+    public Response detalhar(@PathParam("id") Long id) {
+        var medico = service.detalhar(id);
+        
+        return Response.ok(medico).build();
     }
 }

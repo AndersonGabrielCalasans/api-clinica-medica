@@ -1,6 +1,5 @@
-package br.com.gabrielcalasans.persistence.dto;
+package br.com.gabrielcalasans.persistence.dto.endereco;
 
-import br.com.gabrielcalasans.persistence.models.Endereco;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 

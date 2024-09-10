@@ -1,4 +1,4 @@
-package br.com.gabrielcalasans.persistence.repository;
+package br.com.gabrielcalasans.persistence.repo;
 
 import br.com.gabrielcalasans.persistence.models.Medico;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
@@ -7,7 +7,6 @@ import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @ApplicationScoped
 public class MedicoRepository implements PanacheRepositoryBase<Medico, Long> {
