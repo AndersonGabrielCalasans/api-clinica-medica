@@ -3,14 +3,18 @@ package br.com.gabrielcalasans.rest;
 import br.com.gabrielcalasans.persistence.dto.paciente.DadosAtualizacaoPacienteDTO;
 import br.com.gabrielcalasans.persistence.dto.paciente.DadosCadastroPacienteDTO;
 import br.com.gabrielcalasans.persistence.dto.paciente.DadosListagemPacienteDTO;
+import br.com.gabrielcalasans.persistence.models.Medico;
 import br.com.gabrielcalasans.persistence.models.Paciente;
 import br.com.gabrielcalasans.services.PacienteService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @Path("/api/pacientes")
@@ -29,9 +33,14 @@ public class PacienteResource {
     public Response cadastrar(@Valid DadosCadastroPacienteDTO dados) {
         Paciente paciente = service.cadastrar(dados);
         return Response
-                .status(Response.Status.CREATED)
+                .created(getUri(paciente))
                 .entity(paciente)
                 .build();
+    }
+
+    private static URI getUri(@NotNull Paciente dados) {
+        URI uri = UriBuilder.fromResource(PacienteResource.class).path(String.valueOf(dados.getId())).build();
+        return uri;
     }
     
     @GET

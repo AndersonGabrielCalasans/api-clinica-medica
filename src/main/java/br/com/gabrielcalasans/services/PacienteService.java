@@ -1,8 +1,6 @@
 package br.com.gabrielcalasans.services;
 
-import br.com.gabrielcalasans.exception.CRMCadastradoException;
-import br.com.gabrielcalasans.exception.MedicoIdInvalidoException;
-import br.com.gabrielcalasans.exception.PacienteNotFoundException;
+import br.com.gabrielcalasans.exception.BusinessException;
 import br.com.gabrielcalasans.persistence.dto.paciente.DadosAtualizacaoPacienteDTO;
 import br.com.gabrielcalasans.persistence.dto.paciente.DadosCadastroPacienteDTO;
 import br.com.gabrielcalasans.persistence.dto.paciente.DadosDetalhamentoPacienteDTO;
@@ -19,30 +17,30 @@ import java.util.Optional;
 
 @ApplicationScoped
 public class PacienteService {
-    
+
     private final PacienteRepository repository;
-    
+
     public PacienteService(PacienteRepository repository) {
         this.repository = repository;
     }
-    
+
     @Transactional
     public Paciente cadastrar(DadosCadastroPacienteDTO dados) {
         Optional<Paciente> pacienteOptional = repository.buscarPorCPF(dados.cpf());
-        
-        if (pacienteOptional.isPresent() && pacienteOptional.get().getAtivo()) {
-            throw new CRMCadastradoException("CRM já cadastrado!");
-        } else if (pacienteOptional.isPresent() && !pacienteOptional.get().getAtivo()) {
+
+        if (pacienteOptional.isPresent() && !pacienteOptional.get().getAtivo()) {
             var paciente = repository.findById(pacienteOptional.get().getId());
             paciente.setAtivo(true);
             return paciente;
+        } else if (pacienteOptional.isPresent() && pacienteOptional.get().getAtivo()) {
+            throw new BusinessException.JaCadastradoException("Erro: Paciente já cadastrado!");
         } else {
             var paciente = new Paciente(dados);
             repository.persist(paciente);
             return paciente;
         }
     }
-    
+
     public List<DadosListagemPacienteDTO> listar(Integer page, Integer pageSize) {
         return repository.findAllByAtivo(Sort.by("nome"))
                 .page(Page.of(page, pageSize))
@@ -50,17 +48,17 @@ public class PacienteService {
                 .map(DadosListagemPacienteDTO::new)
                 .toList();
     }
-    
+
     @Transactional
     public DadosListagemPacienteDTO atualizar(DadosAtualizacaoPacienteDTO dados) {
-        
+
         Paciente paciente = repository.findById(dados.id());
         atualizarDados(paciente, dados);
         return new DadosListagemPacienteDTO(paciente);
     }
-    
+
     private void atualizarDados(Paciente paciente, DadosAtualizacaoPacienteDTO dados) {
-        
+
         if (dados.nome() != null) {
             paciente.setNome(dados.nome());
         }
@@ -70,25 +68,25 @@ public class PacienteService {
         if (dados.endereco() != null) {
             paciente.getEndereco().atualizarDados(dados.endereco());
         }
-        
+
     }
-    
+
     @Transactional
     public void deletar(Long id) {
         Paciente paciente = repository.findById(id);
         if (!paciente.getAtivo()) {
-            throw new MedicoIdInvalidoException("Id não cadastrado ou medico já inativo");
+            throw new BusinessException.IdInvalidoException("Erro: Id não cadastrado ou paciente já inativo");
         }
         excluirPacienteLogico(paciente);
     }
-    
+
     private void excluirPacienteLogico(Paciente paciente) {
         paciente.setAtivo(false);
     }
-    
+
     public DadosDetalhamentoPacienteDTO detalhar(Long id) {
-        var paciente = repository.findByIdOptional(id).orElseThrow(() -> new PacienteNotFoundException("Id informado não encontrado"));
-        
+        var paciente = repository.findByIdOptional(id).orElseThrow(() -> new BusinessException.NotFoundException("Erro: Id informado não encontrado"));
+
         return new DadosDetalhamentoPacienteDTO(paciente);
     }
 }

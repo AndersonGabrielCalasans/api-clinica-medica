@@ -1,8 +1,6 @@
 package br.com.gabrielcalasans.services;
 
-import br.com.gabrielcalasans.exception.CRMCadastradoException;
-import br.com.gabrielcalasans.exception.MedicoIdInvalidoException;
-import br.com.gabrielcalasans.exception.MedicoNotFoundException;
+import br.com.gabrielcalasans.exception.BusinessException;
 import br.com.gabrielcalasans.persistence.dto.medico.DadosAtualizarMedicoDTO;
 import br.com.gabrielcalasans.persistence.dto.medico.DadosDetalhamentoMedicoDTO;
 import br.com.gabrielcalasans.persistence.dto.medico.DadosListarMedicoFiltradaDTO;
@@ -20,37 +18,37 @@ import java.util.Optional;
 
 @ApplicationScoped
 public class MedicoService {
-    
+
     @Inject
     private final MedicoRepository repository;
-    
+
     public MedicoService(MedicoRepository repository) {
         this.repository = repository;
     }
-    
+
     @Transactional
-    public DadosListarMedicoFiltradaDTO cadastrarMedico(DadosMedicoDTO dadosMedicoDTO) {
+    public Medico cadastrarMedico(DadosMedicoDTO dadosMedicoDTO) {
         Optional<Medico> medicoOptional = repository.buscarPorCRM(dadosMedicoDTO.crm());
-        
-        if (medicoOptional.isPresent() && medicoOptional.get().getAtivo()) {
-            throw new CRMCadastradoException("CRM já cadastrado!");
-        } else if (medicoOptional.isPresent() && !medicoOptional.get().getAtivo()) {
+
+        if (medicoOptional.isPresent() && !medicoOptional.get().getAtivo()) {
             var medico = repository.findById(medicoOptional.get().getId());
             medico.setAtivo(true);
-            return new DadosListarMedicoFiltradaDTO(medico);
+            return medico;
+        } else if (medicoOptional.isPresent() && medicoOptional.get().getAtivo()) {
+            throw new BusinessException.JaCadastradoException("Erro: CRM já cadastrado!");
         } else {
             var medico = new Medico(dadosMedicoDTO);
             repository.persist(medico);
-            return new DadosListarMedicoFiltradaDTO(medico);
+            return medico;
         }
     }
-    
+
     public List<Medico> listarMedicos() {
         return repository.findAll()
                 .stream()
                 .toList();
     }
-    
+
     public List<DadosListarMedicoFiltradaDTO> listarMedicosFiltrado(Integer page, Integer pageSize) {
         return repository.findAllByAtivo(Sort.by("nome"))
                 .page(Page.of(page, pageSize))
@@ -58,17 +56,17 @@ public class MedicoService {
                 .map(DadosListarMedicoFiltradaDTO::new)
                 .toList();
     }
-    
+
     @Transactional
     public DadosListarMedicoFiltradaDTO atualizarMedico(DadosAtualizarMedicoDTO dados) {
-        
+
         Medico medico = repository.findById(dados.id());
         atualizarDados(medico, dados);
         return new DadosListarMedicoFiltradaDTO(medico);
     }
-    
+
     private void atualizarDados(Medico medico, DadosAtualizarMedicoDTO dados) {
-        
+
         if (dados.nome() != null) {
             medico.setNome(dados.nome());
         }
@@ -78,21 +76,21 @@ public class MedicoService {
         if (dados.dadosEnderecoDTO() != null) {
             medico.getEndereco().atualizarDados(dados.dadosEnderecoDTO());
         }
-        
+
     }
-    
+
     @Transactional
     public void deletarMedico(Long id) {
         Medico medico = repository.findById(id);
         if (!medico.getAtivo()) {
-            throw new MedicoIdInvalidoException("Id não cadastrado ou medico já inativo");
+            throw new BusinessException.IdInvalidoException("Erro: Id não cadastrado ou medico já inativo");
         }
         medico.setAtivo(false);
     }
 
     public DadosDetalhamentoMedicoDTO detalhar(Long id) {
-        var medico = repository.findByIdOptional(id).orElseThrow(() -> new MedicoNotFoundException("Id informado não encontrado"));
-        
-        return  new DadosDetalhamentoMedicoDTO(medico);
+        var medico = repository.findByIdOptional(id).orElseThrow(() -> new BusinessException.NotFoundException("Erro: Id informado não encontrado"));
+
+        return new DadosDetalhamentoMedicoDTO(medico);
     }
 }

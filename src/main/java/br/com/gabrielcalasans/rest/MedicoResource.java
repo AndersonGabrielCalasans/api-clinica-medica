@@ -1,8 +1,9 @@
 package br.com.gabrielcalasans.rest;
 
 import br.com.gabrielcalasans.persistence.dto.medico.DadosAtualizarMedicoDTO;
-import br.com.gabrielcalasans.persistence.dto.medico.DadosMedicoDTO;
 import br.com.gabrielcalasans.persistence.dto.medico.DadosListarMedicoFiltradaDTO;
+import br.com.gabrielcalasans.persistence.dto.medico.DadosMedicoDTO;
+import br.com.gabrielcalasans.persistence.models.Medico;
 import br.com.gabrielcalasans.services.MedicoService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -37,9 +38,8 @@ public class MedicoResource {
         return Response.created(uri).entity(medico).build();
     }
     
-    private static URI getUri(@NotNull DadosListarMedicoFiltradaDTO dados) {
-        URI uri = UriBuilder.fromResource(MedicoResource.class).path(String.valueOf(dados.id())).build();
-     
+    private static URI getUri(@NotNull Medico dados) {
+        URI uri = UriBuilder.fromResource(MedicoResource.class).path(String.valueOf(dados.getId())).build();
         return uri;
     }
     
