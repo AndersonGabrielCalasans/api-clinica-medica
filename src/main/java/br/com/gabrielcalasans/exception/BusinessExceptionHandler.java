@@ -13,8 +13,15 @@ public class BusinessExceptionHandler implements ExceptionMapper<BusinessExcepti
     @Produces(MediaType.APPLICATION_JSON + "; charset=UTF-8")
     public Response toResponse(BusinessException exception) {
 
-        return Response.status(Response.Status.BAD_REQUEST)
-                .entity(exception.getMessage())
+        ErrorResponse error = new ErrorResponse(
+                exception.getERROR_NAME(),
+                exception.getCODE_ERROR(),
+                exception.getSTATUS_CODE(),
+                exception.getMessage()
+                );
+
+        return Response.status(error.getStatusCode())
+                .entity(error)
                 .build();
     }
 
